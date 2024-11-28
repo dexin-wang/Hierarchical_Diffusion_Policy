@@ -2,6 +2,7 @@
 
 [[Paper]](https://arxiv.org/pdf/2411.12982)
 [[Data]](https://drive.google.com/drive/folders/1dRdOB7WrvjQeSrbILsmdVBNb_4kizEj-?usp=drive_link)
+[[Video]](https://youtu.be/ce1fg3p2MhI)
 
 <img src="media/overview.png" alt="drawing" width="100%"/>
 <img src="media/control.png" alt="drawing" width="100%"/>
