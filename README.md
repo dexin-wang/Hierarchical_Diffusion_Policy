@@ -39,21 +39,21 @@ Software:
 ### Download Training Data
 Under the repo root, download `data.tar.xz` and decompress:
 ```console
-[hierachical_diffusion_policy]$ pip install gdown
-[hierachical_diffusion_policy]$ gdown https://drive.google.com/uc?id=1D9OkLOwDUjRjjRD6fKhF0p-tXz4KfXtW
-[hierachical_diffusion_policy]$ tar -xvJf data.tar.xz
+[hierarchical_diffusion_policy]$ pip install gdown
+[hierarchical_diffusion_policy]$ gdown https://drive.google.com/uc?id=1D9OkLOwDUjRjjRD6fKhF0p-tXz4KfXtW
+[hierarchical_diffusion_policy]$ tar -xvJf data.tar.xz
 ```
 
 ### Running for a single seed
 Activate conda environment and login to [wandb](https://wandb.ai) (if you haven't already).
 ```console
-[hierachical_diffusion_policy]$ conda activate robodiff
-(robodiff)[hierachical_diffusion_policy]$ wandb login
+[hierarchical_diffusion_policy]$ conda activate robodiff
+(robodiff)[hierarchical_diffusion_policy]$ wandb login
 ```
 
 Launch training with seed 42 on GPU 0.
 ```console
-(robodiff)[hierachical_diffusion_policy]$ python train_hdp.py --config-dir=. --config-name=hdp_tilt.yaml training.seed=42 training.device=cuda:0 hydra.run.dir='data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${logging.name}'
+(robodiff)[hierarchical_diffusion_policy]$ python train_hdp.py --config-dir=. --config-name=hdp_tilt.yaml training.seed=42 training.device=cuda:0 hydra.run.dir='data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${logging.name}'
 ```
 
 This will create a directory in format `data/outputs/yyyy.mm.dd/hh.mm.ss_<method_name>_<task_name>` where configs, logs and checkpoints are written to. Guider, Critic and Actor will be trained in sequence. Actor will be evaluated every 50 epochs with the success rate logged as `test/mean_score` on wandb, as well as videos for some rollouts.
@@ -64,7 +64,7 @@ Download checkpoints of Guider and Actor from the published checkpoint, such as 
 
 Run the evaluation script:
 ```console
-(robodiff)[hierachical_diffusion_policy]$ python eval_hdp.py --config-dir=. --config-name=hdp_tilt.yaml guider_path='guider_ckpt_path' actor_path='actor_ckpt_path' training.device=cuda:0 hydra.run.dir='data/eval'
+(robodiff)[hierarchical_diffusion_policy]$ python eval_hdp.py --config-dir=. --config-name=hdp_tilt.yaml guider_path='guider_ckpt_path' actor_path='actor_ckpt_path' training.device=cuda:0 hydra.run.dir='data/eval'
 ```
 
 ## Dataset
@@ -72,5 +72,5 @@ Run the evaluation script:
 ### Robomimic
 Run the following code to augment the Robomimic dataset published by Diffusion Policy with object point clouds. The augmented dataset with object point clouds will be saved in the same directory. For example, running the code below will generate a new dataset named `low_dim_abs_pcd.hdf5` in the path `data/robomimic/datasets/square/mh/`.
 ```console
-(robodiff)[hierachical_diffusion_policy]$ python dataset/add_pcd_to_robomimic_dataset.py 'data/robomimic/datasets/square/mh/low_dim_abs.hdf5'
+(robodiff)[hierarchical_diffusion_policy]$ python dataset/add_pcd_to_robomimic_dataset.py 'data/robomimic/datasets/square/mh/low_dim_abs.hdf5'
 ```
