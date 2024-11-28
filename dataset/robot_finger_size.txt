@@ -1,0 +1,5 @@
+radius:
+
+panda gripper: (1.2cm, 8mm)
+sphere_gripper: 0.8cm
+cylinder_gripper: 1.5cm

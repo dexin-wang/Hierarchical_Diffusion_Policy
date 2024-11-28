@@ -1,0 +1,1 @@
+from .xml_objects import TestObject, TestYCBObject, TestYCBVisualObject, TriangularPrismObject

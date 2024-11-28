@@ -1,0 +1,196 @@
+_target_: hiera_diffusion_policy.workspace.train_workspace_dp3.TrainWorkspaceDP3
+
+checkpoint:
+  save_last_ckpt: true
+  save_last_snapshot: false
+  topk:
+    format_str: epoch={epoch:04d}-test_mean_score={test_mean_score:.3f}.ckpt
+    k: 0
+    mode: max
+    monitor_key: test_mean_score
+
+dataloader:
+  batch_size: 256
+  num_workers: 1
+  persistent_workers: false
+  pin_memory: true
+  shuffle: true
+
+
+name_remark: 200demo_DP3
+
+logging:
+  group: null
+  id: null
+  mode: online
+  name: can_mh_seed${training.seed}(${name_remark})
+  project: hiera_diffusion_policy
+  resume: false
+
+test_guider: false
+test_run: false
+
+max_train_episodes: null
+use_subgoal: false
+use_pcd: true
+single_step_reverse_diffusion: true
+eta: 0
+discount: 0.95
+subgoal_dim: 8
+subgoal_dim_nocont: 6
+
+n_action_steps: 8
+horizon: 16
+Tr: 8
+n_latency_steps: 0
+observation_history_num: 2
+name: train_hdp
+
+
+optimizer:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0001
+  weight_decay: 1.0e-06
+
+
+ema:
+  _target_: hiera_diffusion_policy.model.diffusion.ema_model.EMAModel
+  update_after_step: 0
+  inv_gamma: 1.0
+  power: 0.75
+  min_value: 0.0
+  max_value: 0.9999
+
+
+shape_meta: 
+  obs:
+    point_cloud:
+      shape: [1024, 3]
+      type: point_cloud
+    state:  # robot7 finger6 object14
+      shape: [27]
+      type: low_dim
+  action:
+    shape: [10]
+
+
+policy:
+  _target_: hiera_diffusion_policy.policy.dp3.DP3
+  horizon: ${horizon}
+  n_action_steps: ${n_action_steps}
+  n_obs_steps: ${observation_history_num}
+
+  noise_scheduler:
+    _target_: diffusers.schedulers.scheduling_ddim.DDIMScheduler
+    num_train_timesteps: 100
+    beta_start: 0.0001
+    beta_end: 0.02
+    beta_schedule: squaredcos_cap_v2
+    clip_sample: True
+    set_alpha_to_one: True
+    steps_offset: 0
+    prediction_type: sample
+
+  shape_meta: ${shape_meta}
+
+  pointcloud_encoder_cfg:
+    in_channels: 3
+    out_channels: 64
+    use_layernorm: true
+    final_norm: layernorm # layernorm, none
+    normal_channel: false
+
+
+task:
+  abs_action: true
+  action_dim: 10
+  dataset:
+    _target_: hiera_diffusion_policy.dataset.robomimic_replay_dataset.RobomimicReplayDataset
+    max_train_episodes: ${max_train_episodes} #! 默认null(200)
+    Tr: ${Tr}
+    use_subgoal: ${use_subgoal}
+    observation_history_num: ${observation_history_num}
+    abs_action: true
+    dataset_path: data/robomimic/datasets/can/mh/low_dim_abs_pcd.hdf5
+    horizon: ${horizon}
+    obs_keys:
+    - object
+    - robot0_eef_pos
+    - robot0_eef_quat
+    - robot0_gripper_qpos
+    pad_after: 7
+    pad_before: 1
+    rotation_rep: rotation_6d
+    seed: 42
+    val_ratio: 0.02
+  dataset_path: data/robomimic/datasets/can/mh/low_dim_abs_pcd.hdf5
+  dataset_type: mh
+  env_runner:
+    _target_: hiera_diffusion_policy.env_runner.robomimic_runner.RobomimicRunner
+    abs_action: true
+    crf: 22
+    dataset_path: data/robomimic/datasets/can/mh/low_dim_abs_pcd.hdf5
+    fps: 10
+    max_steps: 500
+    use_subgoal: ${use_subgoal}
+    use_pcd: ${use_pcd}
+    n_action_steps: ${n_action_steps}
+    n_envs: 28
+    n_latency_steps: 0
+    observation_history_num: 2
+    n_test: 50
+    n_test_vis: 4
+    n_train: 6
+    n_train_vis: 2
+    obs_keys:
+    - object
+    - robot0_eef_pos
+    - robot0_eef_quat
+    - robot0_gripper_qpos
+    past_action: false
+    render_hw:
+    - 128
+    - 128
+    test_start_seed: 100000
+    train_start_idx: 0
+    test_run: ${test_run}
+  name: can_pcd
+  obs_keys:
+  - object
+  - robot0_eef_pos
+  - robot0_eef_quat
+  - robot0_gripper_qpos
+  task_name: can
+
+
+training:
+  checkpoint_every: 50
+  debug: false
+  visual_data: true
+  device: cuda:0
+  gradient_accumulate_every: 1
+  lr_scheduler: cosine
+  lr_warmup_steps: 500
+  max_train_steps: null
+  max_val_steps: null
+  num_epochs: 3000
+  num_steps: 300000 #!
+  resume: true
+  rollout_every: 50
+  updateAction_every: 10
+  sample_every: 5
+  seed: 42
+  tqdm_interval_sec: 1.0
+  use_ema: true
+  val_every: 1
+
+val_dataloader:
+  batch_size: 256
+  num_workers: 1
+  persistent_workers: false
+  pin_memory: true
+  shuffle: false

@@ -1,0 +1,84 @@
+<!-- 两个手指末端各为一个半球，机械手闭合时，半球和为一个球，球半径为5mm。
+    手指位置为半球平面的中心。
+    最大张开宽度为8cm,
+    eef_pos的z坐标与球形手指的z坐标相同 -->
+
+<mujoco model="base">
+    <asset>
+        <mesh name="electric_gripper_base" file="meshes/sphere_gripper/electric_gripper_base.stl" />
+        <mesh name="standard_narrow" file="meshes/sphere_gripper/finger.stl" />
+        <mesh name="half_round_tip" file="meshes/sphere_gripper/tip0.02.stl" />
+        <mesh name="connector_plate" file="meshes/sphere_gripper/connector_plate.stl" />
+    </asset>
+    <!-- <actuator>
+        <position ctrllimited="true" ctrlrange="-0.0185 0.0315" joint="l_finger_joint" kp="1000" name="gripper_l_finger_joint" forcelimited="true" forcerange="-20 20"/>
+        <position ctrllimited="true" ctrlrange="-0.0315 0.0185" joint="r_finger_joint" kp="1000" name="gripper_r_finger_joint" forcelimited="true" forcerange="-20 20"/>    
+    </actuator> -->
+    <actuator>
+        <position ctrllimited="true" ctrlrange="0.0214 0.0215" joint="l_finger_joint" kp="1000" name="gripper_l_finger_joint" forcelimited="true" forcerange="-20 20"/>
+        <position ctrllimited="true" ctrlrange="-0.0215 -0.0214" joint="r_finger_joint" kp="1000" name="gripper_r_finger_joint" forcelimited="true" forcerange="-20 20"/>    
+    </actuator>
+
+    <option noslip_iterations="10" />
+    
+    <worldbody>
+        <body name="gripper_base" pos="0 0 0">
+            <site name="ft_frame" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"/>
+            <inertial pos="0 0 0" quat="-0.5 0.5 0.5 0.5" mass="0.3" diaginertia="3e-08 2e-08 2e-08" />
+            <geom type="mesh" contype="0" conaffinity="0" group="1" mesh="connector_plate" name="connector_plate" pos="0 0 0.0018" rgba="0.499 0.499 0.499 1"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" mesh="electric_gripper_base" name="electric_gripper_base" pos="0 0 0.0194" rgba="0.499 0.499 0.499 1"/>
+            <geom size="0.029 0.05" quat="0 0 0.707107 0.707107" type="cylinder" group="0" name="gripper_base_col" pos="0.004 0.0 0.04"/>
+            <!-- This site was added for visualization. -->
+            <!-- !eef_pos就是下行的pos，当pos的z坐标等于 l_finger pos的z坐标 加  l_finger_tip pos的z坐标时，eef_pos的z坐标等于球形手指的z坐标-->
+            <body name="eef" pos="0 0 0.1144" quat="0.707105 0 0 -0.707105">
+                <site name="grip_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 0.5" type="sphere" group="1"/>
+                <site name="ee_x" pos="0.1 0 0" size="0.005 .1"  quat="0.707105  0 0.707108 0 " rgba="1 0 0 0" type="cylinder" group="1"/>
+                <site name="ee_y" pos="0 0.1 0" size="0.005 .1" quat="0.707105 0.707108 0 0" rgba="0 1 0 0" type="cylinder" group="1"/>
+                <site name="ee_z" pos="0 0 0.1" size="0.005 .1" quat="1 0 0 0" rgba="0 0 1 0" type="cylinder" group="1"/>
+                <!-- This site was added for visualization. -->
+                <site name="grip_site_cylinder" pos="0 0 0" size="0.005 10" rgba="0 1 0 0.3" type="cylinder" group="1"/>
+            </body>
+
+            <body name="l_finger" pos="0 0.01 0.0444">
+                <inertial pos="0 0 0" quat="0 0 0 -1" mass="0.02" diaginertia="0.01 0.01 0.01" />
+                <!-- range设置机械手关节平移范围，注意手指会被机械限位 -->
+                <!-- range第一个元素是靠近机械手中间的限位，第二个位置是靠近边缘的限位 -->
+                <!-- <joint name="l_finger_joint" pos="0 0 0" axis="0 1 0" type="slide" limited="true" range="-0.0185 0.0315" damping="100" armature="1.0" frictionloss="1.0"/> -->
+                <joint name="l_finger_joint" pos="0 0 0" axis="0 1 0" type="slide" limited="true" range="0.0214 0.0215" damping="100" armature="1.0" frictionloss="1.0"/>
+                <geom name="l_finger" quat="0 0 0 -1" type="mesh" contype="0" conaffinity="0" group="1" mesh="standard_narrow" rgba="0.499 0.499 0.499 1"/>
+                <geom size="0.005 0.00675 0.0375" pos="0 0.01725 0.04"       quat="0 0 0 -1" type="box" group="0" conaffinity="1" contype="0" name="l_finger_g0" friction="0 0.001 0.001"/>
+                <geom size="0.005 0.025 0.0085"   pos="-0.005 -0.003 0.0083" quat="0 0 0 -1" type="box" group="0" conaffinity="1" contype="0" name="l_finger_g1" friction="0 0.001 0.001"/>
+                
+                <!-- !手指上面的贴片 -->
+                <!-- <body name="l_finger_tip" pos="0 0.01725 0.075"> -->
+                <body name="l_finger_tip" pos="0 0.0165 0.07">
+                    <inertial pos="0 0 0" quat="0 0 0 1" mass="0.01" diaginertia="0.01 0.01 0.01" />
+                    <!-- <geom name="l_fingertip_g0_vis" pos="0 -0 0" quat="0 0 0 1" type="mesh" contype="0" conaffinity="1" group="1" mesh="half_round_tip" solimp="1. 1. 0.001" friction="1 0.001 0.001" rgba="0.499 0.499 0.499 1"/> -->
+                    <geom name="l_fingertip_g0_vis" size="0.008 0.008 0.008" type="sphere" contype="0" conaffinity="1" group="1" solimp="1.0 1.0 0.001" friction="2 0.001 0.001" rgba="0 0.8 0 1"/>
+                </body>
+            </body>
+
+            <body name="r_finger" pos="0 -0.01 0.0444">
+                <inertial pos="0 0 0" mass="0.02" diaginertia="0.01 0.01 0.01" />
+                <!-- range设置机械手关节平移范围 -->
+                <!-- <joint name="r_finger_joint" pos="0 0 0" axis="0 1 0" type="slide" limited="true" range="-0.0315 0.0185" damping="100" armature="1.0" frictionloss="1.0"/> -->
+                <joint name="r_finger_joint" pos="0 0 0" axis="0 1 0" type="slide" limited="true" range="-0.0215 -0.0214" damping="100" armature="1.0" frictionloss="1.0"/>
+                <geom name="r_finger" type="mesh" contype="0" conaffinity="0" group="1" mesh="standard_narrow" rgba="0.499 0.499 0.499 1"/>
+                <geom size="0.005 0.00675 0.0375" pos="0 -0.01725 0.04" type="box" group="0" conaffinity="1" contype="0" name="r_finger_g0" friction="0 0.001 0.001"/>
+                <geom size="0.005 0.025 0.0085" pos="0.005 0.003 0.0083" type="box" group="0" conaffinity="1" contype="0" name="r_finger_g1" friction="0 0.001 0.001"/> 
+                
+                <!-- !手指上面的贴片 -->
+                <body name="r_finger_tip" pos="0 -0.0165 0.07">
+                <!-- <body name="r_finger_tip" pos="0 0 0.075"> -->
+                    <inertial pos="0 0 0" mass="0.01" diaginertia="0.01 0.01 0.01" />
+                    <!-- <geom name="r_fingertip_g0_vis" pos="0 0 0" quat="1 0 0 0" type="mesh" contype="0" conaffinity="1" group="1" mesh="half_round_tip" solimp="1. 1. 0.001" friction="1 0.001 0.001" rgba="0.499 0.499 0.499 1"/> -->
+                    <geom name="r_fingertip_g0_vis" size="0.008 0.008 0.008" type="sphere" contype="0" conaffinity="1" group="1" solimp="1.0 1.0 0.001" friction="2 0.001 0.001" rgba="0 0 0.8 1"/>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+    <sensor>
+        <force name="force_ee" site="ft_frame"/>
+        <torque name="torque_ee" site="ft_frame"/>
+    </sensor>
+</mujoco>

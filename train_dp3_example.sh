@@ -1,0 +1,1 @@
+python train_dp3.py --config-dir=. --config-name=dp3_tilt.yaml training.seed=42 training.device=cuda:0 hydra.run.dir='data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${logging.name}'

@@ -1,0 +1,243 @@
+_target_: hiera_diffusion_policy.workspace.train_workspace_real.TrainWorkspace
+
+checkpoint:
+  save_last_ckpt: true
+  save_last_snapshot: false
+  topk:
+    format_str: epoch={epoch:04d}-test_mean_score={test_mean_score:.3f}.ckpt
+    k: 0
+    mode: max
+    monitor_key: test_mean_score
+
+batch_size: 256
+
+dataloader:
+  batch_size: ${batch_size}
+  num_workers: 1
+  persistent_workers: false
+  pin_memory: true
+  shuffle: true
+
+dataloader_noshuff:
+  batch_size: ${batch_size}
+  num_workers: 1
+  persistent_workers: false
+  pin_memory: true
+  shuffle: false
+
+guider_path:
+critic_path: 
+actor_path: 
+
+train_model: guider
+
+name_remark: allDemo
+
+
+logging:
+  group: null
+  id: null
+  mode: online
+  name: moveT_seed${training.seed}_${name_remark}
+  project: hiera_diffusion_policy
+  resume: false
+
+
+max_train_episodes: null  # must be null
+mode: grasp   # [grasp, push, all]
+use_subgoal: true
+use_pcd: true # 只限制actor
+single_step_reverse_diffusion: true
+eta: 0.001
+subgoal_dim: 8
+subgoal_dim_nocont: 6
+abs_action: true
+action_dim: 10
+
+n_action_steps: 8
+horizon: 16
+Tr: 8
+n_latency_steps: 0
+observation_history_num: 2
+name: train_hdp
+
+optimizer_guider:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.001
+  weight_decay: 1.0e-06
+
+optimizer_critic:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.001
+  weight_decay: 1.0e-06
+
+optimizer_actor:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0001
+  weight_decay: 1.0e-06
+
+
+model_guider:
+  _target_: hiera_diffusion_policy.model.diffusion.guider.Guider
+  diffusion_step_encoder:
+    _target_: hiera_diffusion_policy.model.diffusion.positional_embedding.TimestepEncoder
+    diffusion_step_embed_dim: 128
+  pcd_encoder:
+    _target_: hiera_diffusion_policy.model.diffusion.pointcloud_encoder.PointNetEncoder
+    input_dim: 6
+    mlp_dims:
+    - 64
+    - 128
+    - 256
+  state_dim: 40
+  subgoal_dim: ${subgoal_dim}
+  mlp_dims: 
+  - 1024
+  - 512
+  - 256
+  - 128
+
+
+model_actor:
+  _target_: hiera_diffusion_policy.model.diffusion.actor_small.Actor
+  diffusion_step_encoder:
+    _target_: hiera_diffusion_policy.model.diffusion.positional_embedding.TimestepEncoder
+    diffusion_step_embed_dim: 128
+  pcd_encoder:
+    _target_: hiera_diffusion_policy.model.diffusion.pointcloud_encoder.PointNetEncoder
+    input_dim: 6
+    mlp_dims:
+    - 64
+    - 128
+  action_dim: ${action_dim}
+  down_dims:
+  - 128
+  - 256
+  - 512
+  state_dim: 40
+  use_subgoal: ${use_subgoal}
+  use_pcd: ${use_pcd}
+  subgoal_dim: ${subgoal_dim}
+  kernel_size: 5
+  n_groups: 8 # group normal param
+  cond_predict_scale: true
+
+
+model_critic:
+  _target_: hiera_diffusion_policy.model.diffusion.critic.Critic2net
+  pcd_encoder:
+    _target_: hiera_diffusion_policy.model.diffusion.pointcloud_encoder.PointNetEncoder
+    input_dim: 6
+    mlp_dims:
+    - 64
+    - 128
+    - 256
+  state_dim: 40
+  subgoal_dim: ${subgoal_dim}
+  action_dim: 80  # 10*Tr
+  mlp_dims:
+  - 512
+  - 256
+  - 128
+
+
+policy:
+  _target_: hiera_diffusion_policy.policy.hiera_diffusion_policy.HieraDiffusionPolicy
+  next_action_mode: dataset  #! dataset/pred_local/pred_global
+  action_dim: ${action_dim}
+  horizon: ${horizon}
+  subgoal_dim_nocont: ${subgoal_dim_nocont}
+  subgoal_dim: ${subgoal_dim}
+  pcd_dim: 3
+  n_action_steps: ${n_action_steps}
+  observation_history_num: 2
+  discount: 0.95  #! 0.95/0.99
+  eta: ${eta}  # actor loss权重系数
+  use_pcd: ${use_pcd}
+  single_step_reverse_diffusion: ${single_step_reverse_diffusion}
+  Tr: ${Tr}
+  ema:
+    _target_: hiera_diffusion_policy.model.diffusion.ema_model_hdp.EMAModel
+    inv_gamma: 1.0
+    max_value: 0.9999
+    min_value: 0.0
+    power: 0.75
+    update_after_step: 0
+  noise_scheduler_guider:
+    _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
+    beta_schedule: squaredcos_cap_v2
+    beta_end: 0.02
+    beta_start: 0.0001
+    clip_sample: true
+    num_train_timesteps: 100 #!
+    prediction_type: epsilon
+    variance_type: fixed_small
+  noise_scheduler_actor:
+    _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
+    beta_schedule: squaredcos_cap_v2
+    beta_end: 0.02
+    beta_start: 0.0001
+    clip_sample: true
+    num_train_timesteps: 10 #!
+    prediction_type: epsilon
+    variance_type: fixed_small
+
+
+task:
+  abs_action: ${abs_action}
+  action_dim: ${action_dim}
+  dataset:
+    _target_: hiera_diffusion_policy.dataset.real_moveT_pcd_replay_dataset.RealReplayDataset
+    max_train_episodes: ${max_train_episodes}
+    mode: ${mode}
+    Tr: ${Tr}
+    use_subgoal: ${use_subgoal}
+    observation_history_num: ${observation_history_num}
+    abs_action: ${abs_action}
+    dataset_path: data/real/moveT_v2_repack.h5
+    horizon: ${horizon}
+    pad_after: 7
+    pad_before: 1
+    rotation_rep: rotation_6d
+    seed: 42
+    val_ratio: 0.02
+
+training:
+  checkpoint_every: 50
+  debug: false
+  visual_data: true
+  device: cuda:0
+  gradient_accumulate_every: 1
+  lr_scheduler: cosine
+  lr_warmup_steps: 500
+  max_train_steps: null
+  max_val_steps: null
+  num_epochs: 3000
+  num_steps: 300000
+  resume: true
+  rollout_every: 50
+  updateAction_every: 10
+  sample_every: 5
+  seed: 42
+  tqdm_interval_sec: 1.0
+  use_ema: true
+  val_every: 1
+
+val_dataloader:
+  batch_size: ${batch_size}
+  num_workers: 1
+  persistent_workers: false
+  pin_memory: true
+  shuffle: false

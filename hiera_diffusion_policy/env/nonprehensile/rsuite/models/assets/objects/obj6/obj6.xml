@@ -1,0 +1,21 @@
+<mujoco model="box_cut">
+  <asset>
+    <texture file="../../textures/red-wood.png" name="tex-box_cut" type="2d"/>
+    <material name="redwood" reflectance="0.7" texrepeat="5 5" texture="tex-box_cut" texuniform="true"/>
+  </asset>
+  <worldbody>
+    <body>
+      <body name="object">
+
+        <geom pos="0 0.01 0" type="box" size="0.065 0.055 0.025" solimp="1.0 1.0 0.001" solref="0.02 1.0" density="100" friction="0.5 0.005 0.0001" material="redwood" group="0"/>
+        <geom pos="-0.055 -0.055 0" type="box" size="0.01 0.01 0.025" solimp="1.0 1.0 0.001" solref="0.02 1.0" density="100" friction="0.5 0.005 0.0001" material="redwood" group="0"/>
+        <geom pos="0.055 -0.055 0" type="box" size="0.01 0.01 0.025" solimp="1.0 1.0 0.001" solref="0.02 1.0" density="100" friction="0.5 0.005 0.0001" material="redwood" group="0"/>
+
+        <geom pos="0 0.01 0" type="box" size="0.065 0.055 0.025" conaffinity="0" contype="0"  rgba="0.5 0 0 0.3" group="1"/>
+        <geom pos="-0.055 -0.055 0" type="box" size="0.01 0.01 0.025" conaffinity="0" contype="0"  rgba="0.5 0 0 0.3" group="1"/>
+        <geom pos="0.055 -0.055 0" type="box" size="0.01 0.01 0.025" conaffinity="0" contype="0"  rgba="0.5 0 0 0.3" group="1"/>
+
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

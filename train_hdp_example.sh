@@ -1,0 +1,1 @@
+python train_hdp.py --config-dir=. --config-name=hdp_can_ph.yaml training.lr_warmup_steps=100 training.num_steps=300 training.num_epochs=60 training.seed=42 training.device=cuda:0 hydra.run.dir='data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${logging.name}'
