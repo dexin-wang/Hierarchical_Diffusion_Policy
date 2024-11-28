@@ -23,9 +23,9 @@ dataloader_noshuff:
   pin_memory: true
   shuffle: false
 
-guider_path: /home/wdx/research/diffusion_robot_manipulation/hierachical_diffusion_policy_v6_ok/data/outputs/tilt/09.05.59_train_diffusion_unet_pcd_tilt_seed42_guider(200demo_stageSG_2h)/checkpoints/latest.ckpt
+guider_path:
 critic_path: 
-actor_path: /home/wdx/research/diffusion_robot_manipulation/hierachical_diffusion_policy_v6_ok/data/outputs/2024.06.02/10.32.38_train_diffusion_unet_pcd_tilt_seed42_actor(200demo_stageSG_0.001eta_allhistory_singlereverse_2intev_4h2steps)/checkpoints/latest.ckpt
+actor_path:
 
 train_model: actor
 
