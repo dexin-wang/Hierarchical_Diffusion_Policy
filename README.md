@@ -1,4 +1,4 @@
-# Hierachical Diffusion Policy
+# Hierarchical Diffusion Policy
 
 [[Paper]](https://arxiv.org/pdf/2411.12982)
 [[Data]](https://drive.google.com/drive/folders/1dRdOB7WrvjQeSrbILsmdVBNb_4kizEj-?usp=drive_link)
